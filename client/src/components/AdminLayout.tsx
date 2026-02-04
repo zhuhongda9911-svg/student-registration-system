@@ -21,6 +21,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     },
   });
 
+  // useEffect must be called before any conditional returns
+  useEffect(() => {
+    if (!adminLoading && !adminSession) {
+      window.location.href = '/admin/login';
+    }
+  }, [adminLoading, adminSession]);
+
   if (adminLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -28,12 +35,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       </div>
     );
   }
-
-  useEffect(() => {
-    if (!adminLoading && !adminSession) {
-      window.location.href = '/admin/login';
-    }
-  }, [adminLoading, adminSession]);
 
   if (!adminSession) {
     return (

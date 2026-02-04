@@ -73,3 +73,6 @@
 
 ## 修复登录问题
 - [x] 修复登录后自动跳回登录页的问题（cookie设置时序问题）
+
+## 修复React Hooks错误
+- [x] 修复AdminLayout中"Rendered more hooks than during the previous render"错误

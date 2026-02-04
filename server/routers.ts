@@ -5,6 +5,9 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import * as db from "./db";
+import * as newsDb from "./news-db";
+import * as competitionsDb from "./competitions-db";
+import * as coursesDb from "./courses-db";
 import { createCheckoutSession } from "./stripe";
 
 // Admin-only procedure
@@ -186,6 +189,324 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         await Promise.all(input.ids.map(id => db.deleteRegistration(id)));
         return { success: true };
+      }),
+  }),
+
+  // News routes
+  news: router({    create: adminProcedure
+      .input(z.object({
+        title: z.string().min(1),
+        summary: z.string().optional(),
+        content: z.string().min(1),
+        category: z.string().min(1),
+        coverImage: z.string().optional(),
+        author: z.string().optional(),
+        source: z.string().optional(),
+        publishDate: z.string(),
+        isPublished: z.boolean().default(true),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const result = await newsDb.createNews({
+          ...input,
+          publishDate: new Date(input.publishDate),
+          createdBy: ctx.user.id,
+        });
+        return { success: true, id: result[0].insertId };
+      }),
+
+    update: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        title: z.string().min(1).optional(),
+        summary: z.string().optional(),
+        content: z.string().optional(),
+        category: z.string().optional(),
+        coverImage: z.string().optional(),
+        author: z.string().optional(),
+        source: z.string().optional(),
+        publishDate: z.string().optional(),
+        isPublished: z.boolean().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, publishDate, ...rest } = input;
+        const data: any = { ...rest };
+        if (publishDate) {
+          data.publishDate = new Date(publishDate);
+        }
+        await newsDb.updateNews(id, data);
+        return { success: true };
+      }),
+
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await newsDb.deleteNews(input.id);
+        return { success: true };
+      }),
+
+    list: publicProcedure
+      .input(z.object({
+        category: z.string().optional(),
+        search: z.string().optional(),
+        limit: z.number().optional(),
+        offset: z.number().optional(),
+      }).optional())
+      .query(async ({ input }) => {
+        return await newsDb.listNews({
+          ...input,
+          publishedOnly: true,
+        });
+      }),
+
+    listAll: adminProcedure
+      .input(z.object({
+        category: z.string().optional(),
+        search: z.string().optional(),
+        limit: z.number().optional(),
+        offset: z.number().optional(),
+      }).optional())
+      .query(async ({ input }) => {
+        return await newsDb.listNews(input);
+      }),
+
+    getById: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        const newsItem = await newsDb.getNewsById(input.id);
+        if (!newsItem) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: '资讯不存在' });
+        }
+        return newsItem;
+      }),
+
+    getCategories: publicProcedure.query(async () => {
+      return await newsDb.getNewsCategories();
+    }),
+  }),
+
+  // Competitions routes
+  competitions: router({
+    create: adminProcedure
+      .input(z.object({
+        name: z.string().min(1),
+        organizer: z.string().optional(),
+        category: z.string().optional(),
+        level: z.enum(["国家级", "省级", "市级", "校级"]).optional(),
+        description: z.string().optional(),
+        requirements: z.string().optional(),
+        awards: z.string().optional(),
+        registrationStartDate: z.string().optional(),
+        registrationEndDate: z.string().optional(),
+        competitionDate: z.string().optional(),
+        resultAnnouncementDate: z.string().optional(),
+        officialWebsite: z.string().optional(),
+        contactInfo: z.string().optional(),
+        status: z.enum(["即将开始", "报名中", "进行中", "已结束"]).default("即将开始"),
+        isWhitelisted: z.boolean().default(false),
+        isPublished: z.boolean().default(true),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const data: any = { ...input, createdBy: ctx.user.id };
+        if (input.registrationStartDate) data.registrationStartDate = new Date(input.registrationStartDate);
+        if (input.registrationEndDate) data.registrationEndDate = new Date(input.registrationEndDate);
+        if (input.competitionDate) data.competitionDate = new Date(input.competitionDate);
+        if (input.resultAnnouncementDate) data.resultAnnouncementDate = new Date(input.resultAnnouncementDate);
+        const result = await competitionsDb.createCompetition(data);
+        return { success: true, id: result[0].insertId };
+      }),
+
+    update: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().min(1).optional(),
+        organizer: z.string().optional(),
+        category: z.string().optional(),
+        level: z.enum(["国家级", "省级", "市级", "校级"]).optional(),
+        description: z.string().optional(),
+        requirements: z.string().optional(),
+        awards: z.string().optional(),
+        registrationStartDate: z.string().optional(),
+        registrationEndDate: z.string().optional(),
+        competitionDate: z.string().optional(),
+        resultAnnouncementDate: z.string().optional(),
+        officialWebsite: z.string().optional(),
+        contactInfo: z.string().optional(),
+        status: z.enum(["即将开始", "报名中", "进行中", "已结束"]).optional(),
+        isWhitelisted: z.boolean().optional(),
+        isPublished: z.boolean().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, registrationStartDate, registrationEndDate, competitionDate, resultAnnouncementDate, ...rest } = input;
+        const data: any = { ...rest };
+        if (registrationStartDate) data.registrationStartDate = new Date(registrationStartDate);
+        if (registrationEndDate) data.registrationEndDate = new Date(registrationEndDate);
+        if (competitionDate) data.competitionDate = new Date(competitionDate);
+        if (resultAnnouncementDate) data.resultAnnouncementDate = new Date(resultAnnouncementDate);
+        await competitionsDb.updateCompetition(id, data);
+        return { success: true };
+      }),
+
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await competitionsDb.deleteCompetition(input.id);
+        return { success: true };
+      }),
+
+    list: publicProcedure
+      .input(z.object({
+        category: z.string().optional(),
+        level: z.string().optional(),
+        status: z.string().optional(),
+        isWhitelisted: z.boolean().optional(),
+        search: z.string().optional(),
+        limit: z.number().optional(),
+        offset: z.number().optional(),
+      }).optional())
+      .query(async ({ input }) => {
+        return await competitionsDb.listCompetitions({
+          ...input,
+          publishedOnly: true,
+        });
+      }),
+
+    listAll: adminProcedure
+      .input(z.object({
+        category: z.string().optional(),
+        level: z.string().optional(),
+        status: z.string().optional(),
+        isWhitelisted: z.boolean().optional(),
+        search: z.string().optional(),
+        limit: z.number().optional(),
+        offset: z.number().optional(),
+      }).optional())
+      .query(async ({ input }) => {
+        return await competitionsDb.listCompetitions(input);
+      }),
+
+    getById: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        const competition = await competitionsDb.getCompetitionById(input.id);
+        if (!competition) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: '竞赛不存在' });
+        }
+        return competition;
+      }),
+
+    getCategories: publicProcedure.query(async () => {
+      return await competitionsDb.getCompetitionCategories();
+    }),
+  }),
+
+  // Courses routes
+  courses: router({
+    create: adminProcedure
+      .input(z.object({
+        title: z.string().min(1),
+        teacherName: z.string().min(1),
+        teacherTitle: z.string().optional(),
+        teacherSchool: z.string().optional(),
+        teacherIntro: z.string().optional(),
+        subject: z.string().min(1),
+        grade: z.string().min(1),
+        description: z.string().optional(),
+        syllabus: z.string().optional(),
+        schedule: z.string().optional(),
+        location: z.string().optional(),
+        price: z.string(),
+        maxStudents: z.number().optional(),
+        courseType: z.enum(["一对一", "小班课", "大班课"]),
+        duration: z.string().optional(),
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+        contactPhone: z.string().optional(),
+        contactWechat: z.string().optional(),
+        isActive: z.boolean().default(true),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const data: any = { ...input, createdBy: ctx.user.id };
+        if (input.startDate) data.startDate = new Date(input.startDate);
+        if (input.endDate) data.endDate = new Date(input.endDate);
+        const result = await coursesDb.createCourse(data);
+        return { success: true, id: result[0].insertId };
+      }),
+
+    update: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        title: z.string().min(1).optional(),
+        teacherName: z.string().optional(),
+        teacherTitle: z.string().optional(),
+        teacherSchool: z.string().optional(),
+        teacherIntro: z.string().optional(),
+        subject: z.string().optional(),
+        grade: z.string().optional(),
+        description: z.string().optional(),
+        syllabus: z.string().optional(),
+        schedule: z.string().optional(),
+        location: z.string().optional(),
+        price: z.string().optional(),
+        maxStudents: z.number().optional(),
+        courseType: z.enum(["一对一", "小班课", "大班课"]).optional(),
+        duration: z.string().optional(),
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+        contactPhone: z.string().optional(),
+        contactWechat: z.string().optional(),
+        isActive: z.boolean().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, startDate, endDate, ...rest } = input;
+        const data: any = { ...rest };
+        if (startDate) data.startDate = new Date(startDate);
+        if (endDate) data.endDate = new Date(endDate);
+        await coursesDb.updateCourse(id, data);
+        return { success: true };
+      }),
+
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await coursesDb.deleteCourse(input.id);
+        return { success: true };
+      }),
+
+    list: publicProcedure
+      .input(z.object({
+        subject: z.string().optional(),
+        grade: z.string().optional(),
+        search: z.string().optional(),
+        limit: z.number().optional(),
+        offset: z.number().optional(),
+      }).optional())
+      .query(async ({ input }) => {
+        return await coursesDb.listCourses({
+          ...input,
+          activeOnly: true,
+        });
+      }),
+
+    listAll: adminProcedure
+      .input(z.object({
+        subject: z.string().optional(),
+        grade: z.string().optional(),
+        search: z.string().optional(),
+        limit: z.number().optional(),
+        offset: z.number().optional(),
+      }).optional())
+      .query(async ({ input }) => {
+        return await coursesDb.listCourses(input);
+      }),
+
+    getById: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        const course = await coursesDb.getCourseById(input.id);
+        if (!course) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: '课程不存在' });
+        }
+        return course;
       }),
   }),
 

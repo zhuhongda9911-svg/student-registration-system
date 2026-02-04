@@ -14,6 +14,11 @@ import Receipt from "./pages/Receipt";
 import Dashboard from "./pages/admin/Dashboard";
 import Activities from "./pages/admin/Activities";
 import Registrations from "./pages/admin/Registrations";
+import NewsManagement from "./pages/admin/NewsManagement";
+import News from "./pages/News";
+import NewsDetail from "./pages/NewsDetail";
+import Competitions from "./pages/Competitions";
+import Courses from "./pages/Courses";
 
 function Router() {
   return (
@@ -23,6 +28,10 @@ function Router() {
       <Route path={"/register/:activityId"} component={Register} />
       <Route path={"/payment/:registrationId"} component={Payment} />
       <Route path={"/receipt/:registrationId"} component={Receipt} />
+      <Route path={"/news"} component={News} />
+      <Route path={"/news/:id"} component={NewsDetail} />
+      <Route path={"/competitions"} component={Competitions} />
+      <Route path={"/courses"} component={Courses} />
       
       {/* Admin Routes */}
       <Route path={"/admin"}>
@@ -38,6 +47,11 @@ function Router() {
       <Route path={"/admin/registrations"}>
         <AdminLayout>
           <Registrations />
+        </AdminLayout>
+      </Route>
+      <Route path={"/admin/news"}>
+        <AdminLayout>
+          <NewsManagement />
         </AdminLayout>
       </Route>
       

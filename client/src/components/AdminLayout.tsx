@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, LayoutDashboard, Calendar, Users, LogOut } from "lucide-react";
+import { Loader2, LayoutDashboard, Calendar, Users, LogOut, Newspaper } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
@@ -51,6 +51,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { path: "/admin", icon: LayoutDashboard, label: "概览" },
     { path: "/admin/activities", icon: Calendar, label: "活动管理" },
     { path: "/admin/registrations", icon: Users, label: "报名管理" },
+    { path: "/admin/news", icon: Newspaper, label: "升学资讯" },
   ];
 
   return (

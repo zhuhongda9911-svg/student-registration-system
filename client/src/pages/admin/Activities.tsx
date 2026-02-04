@@ -59,7 +59,7 @@ export default function Activities() {
     },
   });
 
-  const form = useForm<ActivityFormValues>({
+  const form = useForm({
     resolver: zodResolver(activitySchema),
     defaultValues: {
       title: "",
@@ -70,7 +70,7 @@ export default function Activities() {
       contactWechat: "",
       itinerary: "",
       isActive: true,
-    },
+    } as ActivityFormValues,
   });
 
   const onSubmit = (values: ActivityFormValues) => {

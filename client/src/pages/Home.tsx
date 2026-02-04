@@ -2,11 +2,20 @@ import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Calendar, Users } from "lucide-react";
+import { Loader2, Calendar, Users, Briefcase, Home as HomeIcon } from "lucide-react";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { getLoginUrl } from "@/const";
 
 export default function Home() {
   const [, setLocation] = useLocation();
   const { data: activities, isLoading } = trpc.activities.list.useQuery();
+  const { user } = useAuth();
+  const logoutMutation = trpc.auth.logout.useMutation();
+
+  const handleLogout = async () => {
+    await logoutMutation.mutateAsync();
+    window.location.reload();
+  };
 
   if (isLoading) {
     return (
@@ -19,10 +28,39 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b sticky top-0 z-10">
-        <div className="container py-6">
-          <h1 className="text-3xl font-bold text-primary">研学活动报名系统</h1>
-          <p className="text-muted-foreground mt-2">选择您感兴趣的活动进行报名</p>
+      <header className="bg-white shadow-sm sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => setLocation("/platform")}>
+              <Briefcase className="w-8 h-8 text-blue-600" />
+              <h1 className="text-2xl font-bold text-gray-900">江苏综评·锐鲤升学</h1>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => setLocation("/platform")}>
+              <HomeIcon className="w-4 h-4 mr-2" />
+              返回首页
+            </Button>
+          </div>
+          {user ? (
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-600">欢迎，{user.name}</span>
+              {user.role === "admin" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setLocation("/admin")}
+                >
+                  后台管理
+                </Button>
+              )}
+              <Button variant="ghost" size="sm" onClick={handleLogout}>
+                退出
+              </Button>
+            </div>
+          ) : (
+            <Button onClick={() => (window.location.href = getLoginUrl())}>
+              登录
+            </Button>
+          )}
         </div>
       </header>
 
@@ -83,12 +121,7 @@ export default function Home() {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="border-t bg-white/50 backdrop-blur-sm mt-12">
-        <div className="container py-6 text-center text-sm text-muted-foreground">
-          <p>研学活动报名系统 © {new Date().getFullYear()}</p>
-        </div>
-      </footer>
+
     </div>
   );
 }

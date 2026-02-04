@@ -5,6 +5,8 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import AdminLayout from "./components/AdminLayout";
+import Footer from "./components/Footer";
+import PlatformHome from "./pages/PlatformHome";
 import Home from "./pages/Home";
 import Register from "./pages/Register";
 import Payment from "./pages/Payment";
@@ -16,6 +18,7 @@ import Registrations from "./pages/admin/Registrations";
 function Router() {
   return (
     <Switch>
+      <Route path={"/platform"} component={PlatformHome} />
       <Route path={"/"} component={Home} />
       <Route path={"/register/:activityId"} component={Register} />
       <Route path={"/payment/:registrationId"} component={Payment} />
@@ -50,7 +53,12 @@ function App() {
       <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <Toaster />
-          <Router />
+          <div className="flex flex-col min-h-screen">
+            <div className="flex-1">
+              <Router />
+            </div>
+            <Footer />
+          </div>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

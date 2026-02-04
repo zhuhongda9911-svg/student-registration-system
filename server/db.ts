@@ -1,11 +1,10 @@
-import { eq } from "drizzle-orm";
+import { eq, desc, and, like, gte, lte, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, activities, registrations, payments, InsertActivity, InsertRegistration, InsertPayment } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -18,6 +17,7 @@ export async function getDb() {
   return _db;
 }
 
+// ============ User Functions ============
 export async function upsertUser(user: InsertUser): Promise<void> {
   if (!user.openId) {
     throw new Error("User openId is required for upsert");
@@ -89,4 +89,197 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// ============ Activity Functions ============
+export async function createActivity(activity: InsertActivity) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(activities).values(activity);
+  return result;
+}
+
+export async function getActivityById(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.select().from(activities).where(eq(activities.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getActiveActivities() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db.select().from(activities).where(eq(activities.isActive, true)).orderBy(desc(activities.createdAt));
+}
+
+export async function getAllActivities() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db.select().from(activities).orderBy(desc(activities.createdAt));
+}
+
+export async function updateActivity(id: number, data: Partial<InsertActivity>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(activities).set(data).where(eq(activities.id, id));
+}
+
+// ============ Registration Functions ============
+export async function createRegistration(registration: InsertRegistration) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(registrations).values(registration);
+  return result;
+}
+
+export async function getRegistrationById(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.select().from(registrations).where(eq(registrations.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getRegistrationsByActivityId(activityId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db.select().from(registrations).where(eq(registrations.activityId, activityId)).orderBy(desc(registrations.createdAt));
+}
+
+export async function searchRegistrations(params: {
+  activityId?: number;
+  studentName?: string;
+  paymentStatus?: string;
+  startDate?: Date;
+  endDate?: Date;
+  limit?: number;
+  offset?: number;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const conditions = [];
+  
+  if (params.activityId) {
+    conditions.push(eq(registrations.activityId, params.activityId));
+  }
+  
+  if (params.studentName) {
+    conditions.push(like(registrations.studentName, `%${params.studentName}%`));
+  }
+  
+  if (params.paymentStatus) {
+    conditions.push(eq(registrations.paymentStatus, params.paymentStatus as any));
+  }
+  
+  if (params.startDate) {
+    conditions.push(gte(registrations.createdAt, params.startDate));
+  }
+  
+  if (params.endDate) {
+    conditions.push(lte(registrations.createdAt, params.endDate));
+  }
+  
+  let query = db.select().from(registrations);
+  
+  if (conditions.length > 0) {
+    query = query.where(and(...conditions)) as any;
+  }
+  
+  query = query.orderBy(desc(registrations.createdAt)) as any;
+  
+  if (params.limit) {
+    query = query.limit(params.limit) as any;
+  }
+  
+  if (params.offset) {
+    query = query.offset(params.offset) as any;
+  }
+  
+  return await query;
+}
+
+export async function countRegistrations(params: {
+  activityId?: number;
+  studentName?: string;
+  paymentStatus?: string;
+  startDate?: Date;
+  endDate?: Date;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const conditions = [];
+  
+  if (params.activityId) {
+    conditions.push(eq(registrations.activityId, params.activityId));
+  }
+  
+  if (params.studentName) {
+    conditions.push(like(registrations.studentName, `%${params.studentName}%`));
+  }
+  
+  if (params.paymentStatus) {
+    conditions.push(eq(registrations.paymentStatus, params.paymentStatus as any));
+  }
+  
+  if (params.startDate) {
+    conditions.push(gte(registrations.createdAt, params.startDate));
+  }
+  
+  if (params.endDate) {
+    conditions.push(lte(registrations.createdAt, params.endDate));
+  }
+  
+  let query = db.select({ count: sql<number>`count(*)` }).from(registrations);
+  
+  if (conditions.length > 0) {
+    query = query.where(and(...conditions)) as any;
+  }
+  
+  const result = await query;
+  return result[0]?.count || 0;
+}
+
+export async function updateRegistration(id: number, data: Partial<InsertRegistration>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(registrations).set(data).where(eq(registrations.id, id));
+}
+
+export async function deleteRegistration(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.delete(registrations).where(eq(registrations.id, id));
+}
+
+// ============ Payment Functions ============
+export async function createPayment(payment: InsertPayment) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(payments).values(payment);
+  return result;
+}
+
+export async function getPaymentByRegistrationId(registrationId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.select().from(payments).where(eq(payments.registrationId, registrationId)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function updatePayment(id: number, data: Partial<InsertPayment>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(payments).set(data).where(eq(payments.id, id));
+}

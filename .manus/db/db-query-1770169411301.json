@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO activities (title, description, price, contactPerson, contactPhone, contactWechat, itinerary, isActive, createdBy) \nVALUES \n('东大筑韵 南航逐梦 南京一日研学', '走进东南大学和南京航空航天大学，感受名校氛围，体验大学生活', '980.00', '张老师', '13800138000', 'teacher_zhang', '上午：参观东南大学校园，聆听学长学姐分享\\n中午：大学食堂用餐体验\\n下午：参观南京航空航天大学航空航天馆\\n晚上：返程', true, 1);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user VfGifogwyiKCK7m.root --database naA6Tr639bL9chRLzb6rHR --execute INSERT INTO activities (title, description, price, contactPerson, contactPhone, contactWechat, itinerary, isActive, createdBy) \nVALUES \n('东大筑韵 南航逐梦 南京一日研学', '走进东南大学和南京航空航天大学，感受名校氛围，体验大学生活', '980.00', '张老师', '13800138000', 'teacher_zhang', '上午：参观东南大学校园，聆听学长学姐分享\\n中午：大学食堂用餐体验\\n下午：参观南京航空航天大学航空航天馆\\n晚上：返程', true, 1);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1708
+}

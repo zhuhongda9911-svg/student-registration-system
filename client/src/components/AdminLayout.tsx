@@ -1,9 +1,8 @@
-import { useState, ReactNode, useEffect } from "react";
+import { ReactNode, useEffect } from "react";
 import { useLocation } from "wouter";
-import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, LayoutDashboard, Calendar, Users, LogOut, Newspaper, Shield } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Loader2, LayoutDashboard, Calendar, Users, LogOut, Newspaper, Shield, Trophy, GraduationCap } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
@@ -12,6 +11,7 @@ interface AdminLayoutProps {
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
+  // All hooks must be called unconditionally at the top
   const [location, setLocation] = useLocation();
   const { data: adminSession, isLoading: adminLoading } = trpc.admin.me.useQuery();
   const logout = trpc.admin.logout.useMutation({
@@ -21,36 +21,32 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     },
   });
 
-  // useEffect must be called before any conditional returns
+  // useEffect for redirect
   useEffect(() => {
     if (!adminLoading && !adminSession) {
       window.location.href = '/admin/login';
     }
   }, [adminLoading, adminSession]);
 
-  if (adminLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (!adminSession) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
+  // Define menu items here (before any conditional returns)
   const menuItems = [
     { path: "/admin", icon: LayoutDashboard, label: "概览" },
     { path: "/admin/activities", icon: Calendar, label: "活动管理" },
     { path: "/admin/registrations", icon: Users, label: "报名管理" },
     { path: "/admin/news", icon: Newspaper, label: "升学资讯" },
+    { path: "/admin/competitions", icon: Trophy, label: "竞赛资讯" },
+    { path: "/admin/courses", icon: GraduationCap, label: "名师课程" },
     { path: "/admin/admins", icon: Shield, label: "管理员管理" },
   ];
+
+  // Now handle conditional rendering
+  if (adminLoading || !adminSession) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -58,7 +54,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       <header className="bg-white/80 backdrop-blur-sm border-b sticky top-0 z-10">
         <div className="container py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-primary">研学活动管理后台</h1>
+            <h1 className="text-2xl font-bold text-primary">锐鲲升学管理后台</h1>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground">

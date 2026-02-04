@@ -76,3 +76,8 @@
 
 ## 修复React Hooks错误
 - [x] 修复AdminLayout中"Rendered more hooks than during the previous render"错误
+
+## 修复管理后台问题
+- [x] 重写AdminLayout避免hooks顺序问题
+- [x] 创建管理后台概览页面（Dashboard）
+- [x] 在后台菜单中添加竞赛和课程管理入口

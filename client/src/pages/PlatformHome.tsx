@@ -61,12 +61,15 @@ export default function PlatformHome() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-16 px-4">
+      <div className="bg-gradient-to-r from-red-700 to-red-900 text-white py-16 px-4">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            🎓 江苏升学规划导师平台
-          </h1>
-          <p className="text-xl text-blue-100">
+          <div className="flex items-center justify-center gap-6 mb-6">
+            <img src="/logo.jpg" alt="锐鲲升学" className="w-24 h-24 rounded-full shadow-lg" />
+            <h1 className="text-4xl md:text-5xl font-bold">
+              锐鲲升学
+            </h1>
+          </div>
+          <p className="text-xl text-red-100 text-center">
             为高一至高三学生提供专业的升学规划、志愿填报、竞赛指导等全方位服务
           </p>
         </div>

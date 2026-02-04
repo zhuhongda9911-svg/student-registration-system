@@ -8,7 +8,9 @@ import * as db from "./db";
 import * as newsDb from "./news-db";
 import * as competitionsDb from "./competitions-db";
 import * as coursesDb from "./courses-db";
+import * as adminsDb from "./admins-db";
 import { createCheckoutSession } from "./stripe";
+import bcrypt from "bcryptjs";
 
 // Admin-only procedure
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -28,6 +30,121 @@ export const appRouter = router({
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return { success: true } as const;
     }),
+  }),
+
+  // Admin authentication and management
+  admin: router({
+    login: publicProcedure
+      .input(z.object({
+        username: z.string().min(1),
+        password: z.string().min(1),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const admin = await adminsDb.getAdminByUsername(input.username);
+        
+        if (!admin || !admin.isActive) {
+          throw new TRPCError({ code: 'UNAUTHORIZED', message: '用户名或密码错误' });
+        }
+        
+        const isValidPassword = await bcrypt.compare(input.password, admin.password);
+        if (!isValidPassword) {
+          throw new TRPCError({ code: 'UNAUTHORIZED', message: '用户名或密码错误' });
+        }
+        
+        // Update last login time
+        await adminsDb.updateLastLoginAt(admin.id);
+        
+        // Set admin session cookie
+        const cookieOptions = getSessionCookieOptions(ctx.req);
+        ctx.res.cookie('admin_session', JSON.stringify({ adminId: admin.id, username: admin.username, name: admin.name }), {
+          ...cookieOptions,
+          maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        });
+        
+        return {
+          success: true,
+          admin: {
+            id: admin.id,
+            username: admin.username,
+            name: admin.name,
+            email: admin.email,
+          },
+        };
+      }),
+    
+    me: publicProcedure.query(({ ctx }) => {
+      const adminSession = ctx.req.cookies?.admin_session;
+      if (!adminSession) return null;
+      
+      try {
+        return JSON.parse(adminSession);
+      } catch {
+        return null;
+      }
+    }),
+    
+    logout: publicProcedure.mutation(({ ctx }) => {
+      const cookieOptions = getSessionCookieOptions(ctx.req);
+      ctx.res.clearCookie('admin_session', { ...cookieOptions, maxAge: -1 });
+      return { success: true };
+    }),
+    
+    list: adminProcedure.query(async () => {
+      return await adminsDb.getAllAdmins();
+    }),
+    
+    create: adminProcedure
+      .input(z.object({
+        username: z.string().min(3),
+        password: z.string().min(4),
+        name: z.string().min(1),
+        email: z.string().email().optional(),
+        phone: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const hashedPassword = await bcrypt.hash(input.password, 10);
+        
+        const admin = await adminsDb.createAdmin({
+          username: input.username,
+          password: hashedPassword,
+          name: input.name,
+          email: input.email,
+          phone: input.phone,
+          createdBy: ctx.user.id,
+        });
+        
+        return { success: true, admin };
+      }),
+    
+    update: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().min(1).optional(),
+        email: z.string().email().optional(),
+        phone: z.string().optional(),
+        password: z.string().min(4).optional(),
+        isActive: z.boolean().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const updates: any = {};
+        if (input.name) updates.name = input.name;
+        if (input.email !== undefined) updates.email = input.email;
+        if (input.phone !== undefined) updates.phone = input.phone;
+        if (input.isActive !== undefined) updates.isActive = input.isActive;
+        if (input.password) {
+          updates.password = await bcrypt.hash(input.password, 10);
+        }
+        
+        const admin = await adminsDb.updateAdmin(input.id, updates);
+        return { success: true, admin };
+      }),
+    
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await adminsDb.deleteAdmin(input.id);
+        return { success: true };
+      }),
   }),
 
   // Activity management routes (admin only)

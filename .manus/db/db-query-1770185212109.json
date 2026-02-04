@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE `admins` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`username` varchar(50) NOT NULL,\n\t`password` varchar(255) NOT NULL,\n\t`name` varchar(100) NOT NULL,\n\t`email` varchar(320),\n\t`phone` varchar(20),\n\t`isActive` boolean NOT NULL DEFAULT true,\n\t`lastLoginAt` timestamp,\n\t`createdBy` int,\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\t`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,\n\tCONSTRAINT `admins_id` PRIMARY KEY(`id`),\n\tCONSTRAINT `admins_username_unique` UNIQUE(`username`)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user VfGifogwyiKCK7m.root --database naA6Tr639bL9chRLzb6rHR --execute CREATE TABLE `admins` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`username` varchar(50) NOT NULL,\n\t`password` varchar(255) NOT NULL,\n\t`name` varchar(100) NOT NULL,\n\t`email` varchar(320),\n\t`phone` varchar(20),\n\t`isActive` boolean NOT NULL DEFAULT true,\n\t`lastLoginAt` timestamp,\n\t`createdBy` int,\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\t`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,\n\tCONSTRAINT `admins_id` PRIMARY KEY(`id`),\n\tCONSTRAINT `admins_username_unique` UNIQUE(`username`)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1624
+}

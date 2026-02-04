@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, LayoutDashboard, Calendar, Users, LogOut, Newspaper } from "lucide-react";
+import { Loader2, LayoutDashboard, Calendar, Users, LogOut, Newspaper, Shield } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
@@ -13,15 +13,15 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const [location, setLocation] = useLocation();
-  const { user, loading, isAuthenticated } = useAuth();
-  const logout = trpc.auth.logout.useMutation({
+  const { data: adminSession, isLoading: adminLoading } = trpc.admin.me.useQuery();
+  const logout = trpc.admin.logout.useMutation({
     onSuccess: () => {
       toast.success("已退出登录");
-      window.location.href = "/";
+      window.location.href = "/admin/login";
     },
   });
 
-  if (loading) {
+  if (adminLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -29,22 +29,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     );
   }
 
-  if (!isAuthenticated || user?.role !== "admin") {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <Card className="max-w-md">
-          <CardHeader>
-            <CardTitle>需要管理员权限</CardTitle>
-            <CardDescription>您没有权限访问此页面</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={() => setLocation("/")} className="w-full">
-              返回首页
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
+  if (!adminSession) {
+    // Redirect to admin login
+    if (typeof window !== 'undefined') {
+      window.location.href = '/admin/login';
+    }
+    return null;
   }
 
   const menuItems = [
@@ -52,6 +42,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { path: "/admin/activities", icon: Calendar, label: "活动管理" },
     { path: "/admin/registrations", icon: Users, label: "报名管理" },
     { path: "/admin/news", icon: Newspaper, label: "升学资讯" },
+    { path: "/admin/admins", icon: Shield, label: "管理员管理" },
   ];
 
   return (
@@ -64,7 +55,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground">
-              {user?.name || user?.email}
+              {adminSession?.name || adminSession?.username}
             </span>
             <Button
               variant="outline"

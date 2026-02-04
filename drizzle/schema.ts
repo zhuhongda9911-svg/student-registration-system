@@ -192,3 +192,23 @@ export const courses = mysqlTable("courses", {
 
 export type Course = typeof courses.$inferSelect;
 export type InsertCourse = typeof courses.$inferInsert;
+
+/**
+ * Admins table - stores admin account information for backend management
+ */
+export const admins = mysqlTable("admins", {
+  id: int("id").autoincrement().primaryKey(),
+  username: varchar("username", { length: 50 }).notNull().unique(),
+  password: varchar("password", { length: 255 }).notNull(), // bcrypt hashed password
+  name: varchar("name", { length: 100 }).notNull(),
+  email: varchar("email", { length: 320 }),
+  phone: varchar("phone", { length: 20 }),
+  isActive: boolean("isActive").default(true).notNull(),
+  lastLoginAt: timestamp("lastLoginAt"),
+  createdBy: int("createdBy"), // null for initial admin
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Admin = typeof admins.$inferSelect;
+export type InsertAdmin = typeof admins.$inferInsert;

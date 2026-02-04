@@ -19,6 +19,8 @@ import News from "./pages/News";
 import NewsDetail from "./pages/NewsDetail";
 import Competitions from "./pages/Competitions";
 import Courses from "./pages/Courses";
+import AdminLogin from "./pages/AdminLogin";
+import AdminManagement from "./pages/admin/AdminManagement";
 
 function Router() {
   return (
@@ -32,6 +34,7 @@ function Router() {
       <Route path={"/news/:id"} component={NewsDetail} />
       <Route path={"/competitions"} component={Competitions} />
       <Route path={"/courses"} component={Courses} />
+      <Route path={"/admin/login"} component={AdminLogin} />
       
       {/* Admin Routes */}
       <Route path={"/admin"}>
@@ -52,6 +55,11 @@ function Router() {
       <Route path={"/admin/news"}>
         <AdminLayout>
           <NewsManagement />
+        </AdminLayout>
+      </Route>
+      <Route path={"/admin/admins"}>
+        <AdminLayout>
+          <AdminManagement />
         </AdminLayout>
       </Route>
       

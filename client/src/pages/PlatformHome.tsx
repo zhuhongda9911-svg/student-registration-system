@@ -43,7 +43,7 @@ export default function PlatformHome() {
       bgColor: "bg-green-50",
       textColor: "text-green-700",
       count: projectCount.toString(),
-      action: () => setLocation("/"),
+      action: () => setLocation("/activities"),
     },
     {
       id: "courses",

@@ -23,8 +23,8 @@ import Courses from "./pages/Courses";
 function Router() {
   return (
     <Switch>
-      <Route path={"/platform"} component={PlatformHome} />
-      <Route path={"/"} component={Home} />
+      <Route path={"/"} component={PlatformHome} />
+      <Route path={"/activities"} component={Home} />
       <Route path={"/register/:activityId"} component={Register} />
       <Route path={"/payment/:registrationId"} component={Payment} />
       <Route path={"/receipt/:registrationId"} component={Receipt} />

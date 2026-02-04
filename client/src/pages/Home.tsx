@@ -31,11 +31,11 @@ export default function Home() {
       <header className="bg-white shadow-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 cursor-pointer" onClick={() => setLocation("/platform")}>
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => setLocation("/")}>
               <Briefcase className="w-8 h-8 text-blue-600" />
               <h1 className="text-2xl font-bold text-gray-900">江苏综评·锐鲤升学</h1>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => setLocation("/platform")}>
+            <Button variant="ghost" size="sm" onClick={() => setLocation("/")}>
               <HomeIcon className="w-4 h-4 mr-2" />
               返回首页
             </Button>

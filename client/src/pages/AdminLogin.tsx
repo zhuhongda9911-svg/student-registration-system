@@ -17,7 +17,10 @@ export default function AdminLogin() {
   const loginMutation = trpc.admin.login.useMutation({
     onSuccess: () => {
       toast.success("登录成功");
-      setLocation("/admin");
+      // Use window.location to ensure cookie is set before navigation
+      setTimeout(() => {
+        window.location.href = "/admin";
+      }, 500);
     },
     onError: (error) => {
       toast.error(error.message || "登录失败");

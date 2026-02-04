@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { useState, ReactNode, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -29,12 +29,18 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     );
   }
 
-  if (!adminSession) {
-    // Redirect to admin login
-    if (typeof window !== 'undefined') {
+  useEffect(() => {
+    if (!adminLoading && !adminSession) {
       window.location.href = '/admin/login';
     }
-    return null;
+  }, [adminLoading, adminSession]);
+
+  if (!adminSession) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
   const menuItems = [
